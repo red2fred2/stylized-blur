@@ -1,12 +1,11 @@
 mod filter;
+mod test_filters;
 
 use anyhow::Result;
 use image::io::Reader;
 
-use filter::Filter;
-
 fn main() -> Result<()> {
-	let training_image_path = "test.jpg";
+	let training_image_path = "building.jpg";
 	let output_image_path = "output.png";
 
 	// Load
@@ -18,23 +17,7 @@ fn main() -> Result<()> {
 	println!("Screwing with it");
 	let training_image = training_image.to_rgb8();
 
-	// let kernel = vec![
-	// 	vec![0.004, 0.016, 0.024, 0.016, 0.004],
-	// 	vec![0.016, 0.064, 0.096, 0.064, 0.016],
-	// 	vec![0.024, 0.096, 0.144, 0.096, 0.024],
-	// 	vec![0.016, 0.064, 0.096, 0.064, 0.016],
-	// 	vec![0.004, 0.016, 0.024, 0.016, 0.004],
-	// ];
-
-	let kernel = vec![
-		vec![0.04, 0.04, 0.04, 0.04, 0.04],
-		vec![0.04, 0.04, 0.04, 0.04, 0.04],
-		vec![0.04, 0.04, 0.04, 0.04, 0.04],
-		vec![0.04, 0.04, 0.04, 0.04, 0.04],
-		vec![0.04, 0.04, 0.04, 0.04, 0.04],
-	];
-
-	let filter = Filter::new(kernel.clone(), kernel.clone(), kernel)?;
+	let filter = test_filters::edge_multicolor()?;
 
 	let output_image = filter.convolve(&training_image);
 
