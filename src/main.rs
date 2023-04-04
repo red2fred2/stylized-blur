@@ -1,25 +1,25 @@
-mod filter;
-mod test_filters;
+mod image_transforms;
 
 use anyhow::Result;
 use image::io::Reader;
+use image_transforms::filters;
 
 fn main() -> Result<()> {
-	let training_image_path = "building.jpg";
+	let input_image_path = "test.jpg";
 	let output_image_path = "output.png";
 
 	// Load
 	println!("Loading training image");
-	let result = Reader::open(training_image_path);
-	let training_image = result?.decode()?;
+	let result = Reader::open(input_image_path);
+	let input_image = result?.decode()?;
 
 	// Screw with it
 	println!("Screwing with it");
-	let training_image = training_image.to_rgb8();
+	let input_image = input_image.to_rgb8();
 
-	let filter = test_filters::edge_multicolor()?;
+	let filter = filters::edge_multicolor()?;
 
-	let output_image = filter.convolve(&training_image);
+	let output_image = filter.convolve(&input_image);
 
 	// Save
 	println!("Saving output image");

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use crate::filter::Filter;
+use super::filter::Filter;
 
 #[allow(unused)]
 pub fn bloom() -> Result<Filter> {
