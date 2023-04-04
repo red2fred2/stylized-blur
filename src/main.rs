@@ -2,10 +2,12 @@ mod image_transforms;
 
 use anyhow::Result;
 use image::io::Reader;
-use image_transforms::filters;
+use image_transforms::{add, filters};
+
+use crate::image_transforms::crop_to_filter;
 
 fn main() -> Result<()> {
-	let input_image_path = "test.jpg";
+	let input_image_path = "Vending_Machines.jpg";
 	let output_image_path = "output.png";
 
 	// Load
@@ -15,11 +17,14 @@ fn main() -> Result<()> {
 
 	// Screw with it
 	println!("Screwing with it");
-	let input_image = input_image.to_rgb8();
+	let mut input_image = input_image.to_rgb8();
 
-	let filter = filters::edge_multicolor()?;
+	let filter = filters::edge_5x5()?;
 
-	let output_image = filter.convolve(&input_image);
+	let edges = filter.convolve(&input_image);
+	let cropped = crop_to_filter(&mut input_image, &filter);
+
+	let output_image = add(&edges, &cropped)?;
 
 	// Save
 	println!("Saving output image");

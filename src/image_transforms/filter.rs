@@ -5,6 +5,7 @@ pub struct Filter {
 	r: Vec<Vec<f32>>,
 	g: Vec<Vec<f32>>,
 	b: Vec<Vec<f32>>,
+	size: usize,
 }
 
 impl Filter {
@@ -21,7 +22,9 @@ impl Filter {
 			return Err(anyhow!("Kernel must be an odd size"));
 		}
 
-		Ok(Filter {r, g, b})
+		let size = r.len();
+
+		Ok(Filter {r, g, b, size})
 	}
 
 	/// Checks if each dimension of the kernels are the same size
@@ -102,5 +105,12 @@ impl Filter {
 		}
 
 		Rgb([r as u8,g as u8, b as u8])
+	}
+
+	/// Returns the size of the filter
+	///
+	/// For example, a 3x3 filter would return 3
+	pub fn size(&self) -> usize {
+		self.size
 	}
 }
