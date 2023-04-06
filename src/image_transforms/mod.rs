@@ -1,45 +1,44 @@
-use anyhow::{anyhow, Result};
-use image::{imageops::crop, ImageBuffer, Rgb};
+use anyhow::Result;
+use image::{ImageBuffer, Pixel, Rgba, imageops::crop};
+
+use crate::image_transforms::helpers::combine;
 
 use self::filter::Filter;
 
+pub mod helpers;
 pub mod filter;
 pub mod filters;
 
-type Image = ImageBuffer<Rgb<u8>, Vec<u8>>;
+/// Additively combines the images
+pub fn add<P1, P2>(a: &ImageBuffer<P1, Vec<f32>>, b: &ImageBuffer<P2, Vec<f32>>)
+-> Result<ImageBuffer<Rgba<f32>, Vec<f32>>>
+where P1: Pixel + Pixel<Subpixel = f32>,
+P2: Pixel + Pixel<Subpixel = f32> {
+	combine(a, b, add_pixel)
+}
 
-/// Additively combines two images
-pub fn add(a: &Image, b: &Image) -> Result<Image> {
-	// Check if the images are the same size
-	if a.width() != b.width() || a.height() != b.height() {
-		return Err(anyhow!("Images being added are not the same size"))
-	}
+#[allow(unused)]
+fn add_pixel<P1, P2>(a: &P1, b: &P2, _: u32, _: u32)
+-> Rgba<f32>
+where P1: Pixel + Pixel<Subpixel = f32>,
+P2: Pixel + Pixel<Subpixel = f32> {
+	let a = a.to_rgba();
+	let a = a.channels();
+	let b = b.to_rgba();
+	let b = b.channels();
 
-	let width = a.width();
-	let height = a.height();
-
-	let mut output_image = ImageBuffer::new(width, height);
-
-	// Go pixel by pixel
-	for y in 0..height {
-		for x in 0..width {
-			let pixel_a = a.get_pixel(x, y);
-			let pixel_b = b.get_pixel(x, y);
-
-			let r = pixel_a.0[0] + pixel_b.0[0];
-			let g = pixel_a.0[1] + pixel_b.0[1];
-			let b = pixel_a.0[2] + pixel_b.0[2];
-
-			let pixel = Rgb([r, g, b]);
-			output_image.put_pixel(x, y, pixel);
-		}
-	}
-
-	Ok(output_image)
+	Rgba([
+		a[0] * a[3] + b[0] *b[3],
+		a[1] * a[3] + b[1] *b[3],
+		a[2] * a[3] + b[2] *b[3],
+		a[3] + b[3]
+	])
 }
 
 /// Crops an image as if it went through the given filter
-pub fn crop_to_filter(image: &mut Image, filter: &Filter) -> Image {
+pub fn crop_to_filter<P>(image: &mut ImageBuffer<P, Vec<f32>>, filter: &Filter)
+-> ImageBuffer<P, Vec<f32>>
+where P: 'static + Pixel + Pixel<Subpixel = f32> {
 	let offset = (filter.size() / 2) as u32;
 	let x = offset;
 	let y = offset;

@@ -1,33 +1,34 @@
 mod image_transforms;
 
 use anyhow::Result;
-use image::io::Reader;
-use image_transforms::{add, filters};
+use image::{io::Reader, DynamicImage, imageops::crop};
 
-use crate::image_transforms::crop_to_filter;
+use crate::image_transforms::add;
 
 fn main() -> Result<()> {
 	let input_image_path = "Vending_Machines.jpg";
 	let output_image_path = "output.png";
 
 	// Load
-	println!("Loading training image");
+	println!("Loading image");
 	let result = Reader::open(input_image_path);
 	let input_image = result?.decode()?;
+	let mut input_image = input_image.to_rgba32f();
+	let input_image = crop(&mut input_image, 0, 0, 1000, 1000).to_image();
+
+	let result2 = Reader::open("test.jpg");
+	let input_image2 = result2?.decode()?;
+	let mut input_image2 = input_image2.to_rgba32f();
+	let input_image2 = crop(&mut input_image2, 0, 0, 1000, 1000).to_image();
 
 	// Screw with it
 	println!("Screwing with it");
-	let mut input_image = input_image.to_rgb8();
 
-	let filter = filters::edge_5x5()?;
-
-	let edges = filter.convolve(&input_image);
-	let cropped = crop_to_filter(&mut input_image, &filter);
-
-	let output_image = add(&edges, &cropped)?;
+	let img = add(&input_image, &input_image2)?;
 
 	// Save
 	println!("Saving output image");
+	let output_image = DynamicImage::from(img).to_rgb8();
 	output_image.save(output_image_path)?;
 
 	Ok(())
